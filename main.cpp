@@ -9,10 +9,6 @@ template <int NMoves, typename SMPrev, typename SMBase>
 struct ChooseSMPrev {
   using type = SMPrev;
 };
-template <typename SMPrev>
-struct ChooseSMPrev<0, SMPrev, void> {
-  using type = SMPrev;
-};
 template <typename SMPrev, typename SMBase>
 struct ChooseSMPrev<0, SMPrev, SMBase> {
   using type = SMBase;
@@ -25,16 +21,31 @@ struct StateMachine {
                             StateMachine<NMoves - 1, Program, SMBase>,
                             SMBase>::type;
   static constexpr int program_index = []() {
-    if (Program::program[SMPrev::program_index] == ']' &&
-        SMPrev::tape[SMPrev::tape_index] != 0) {
+    if (Program::program[SMPrev::program_index] == ']') {
       // Find matching opening bracket to jump to
       int v = 0;
       for (int i = SMPrev::program_index - 1; i >= 0; --i) {
-        if (Program::program[i] == ']')
+        if (Program::program[i] == ']') {
           ++v;
-        else if (Program::program[i] == '[') {
-          if (v == 0)
+        } else if (Program::program[i] == '[') {
+          if (v == 0) {
             return i;
+          }
+          --v;
+        }
+      }
+    } else if (Program::program[SMPrev::program_index] == '[' &&
+               SMPrev::tape[SMPrev::tape_index] == 0) {
+      // Find matching closing bracket to jump to
+      int v = 0;
+      for (int i = SMPrev::program_index + 1; i < Program::program.size();
+           ++i) {
+        if (Program::program[i] == '[') {
+          ++v;
+        } else if (Program::program[i] == ']') {
+          if (v == 0) {
+            return i + 1;
+          }
           --v;
         }
       }
@@ -115,15 +126,16 @@ struct MoveRight {
 
 template <typename SM, typename Program>
 struct Run {
-  static constexpr int tape_index =
-      StateMachine<Program::NMoves, Program, SM>::tape_index;
+  using RanSM =
+      typename ChooseSMPrev<Program::NMoves,
+                            StateMachine<Program::NMoves, Program, SM>,
+                            SM>::type;
+  static constexpr int tape_index = RanSM::tape_index;
   static constexpr int program_index = 0;
-  static constexpr int output_index =
-      StateMachine<Program::NMoves, Program, SM>::output_index;
+  static constexpr int output_index = RanSM::output_index;
   static constexpr int input_index = 0;
-  static constexpr Tape tape = StateMachine<Program::NMoves, Program, SM>::tape;
-  static constexpr Output output =
-      StateMachine<Program::NMoves, Program, SM>::output;
+  static constexpr Tape tape = RanSM::tape;
+  static constexpr Output output = RanSM::output;
 
   static_assert(Program::program[Program::program.size() - 1] == ' ');
 };
@@ -143,7 +155,7 @@ void printSM() {
 int main() {
   using SMInput =
       Run<Run<Run<StateMachine<0, EmptyProgram>, Input<3>>, MoveRight<1>>,
-          Input<4>>;
+          Input<5>>;
   using SMAdd = Run<SMInput, Add<SMInput::tape[SMInput::tape_index]>>;
   printSM<SMAdd>();
   return 0;
