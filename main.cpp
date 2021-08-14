@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <array>
 #include <iostream>
-#include <vector>
 
 using Tape = std::array<int, 100>;
 using Output = std::array<int, 1000>;
