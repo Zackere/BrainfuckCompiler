@@ -142,9 +142,9 @@ void printSM() {
 
 int main() {
   using SMInput =
-      Run<Run<Run<StateMachine<0, EmptyProgram>, Input<2>>, MoveRight<1>>,
-          Input<3>>;
-  using SMAdd = Run<SMInput, Add<3>>;
+      Run<Run<Run<StateMachine<0, EmptyProgram>, Input<3>>, MoveRight<1>>,
+          Input<4>>;
+  using SMAdd = Run<SMInput, Add<SMInput::tape[SMInput::tape_index]>>;
   printSM<SMAdd>();
   return 0;
 }

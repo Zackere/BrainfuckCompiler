@@ -17,8 +17,8 @@ To define programs, which run on the results of another programs, use provided `
 # Examples
 ```
 struct EmptyProgram {
-	static constexpr std::array program = {' '};
-	static constexpr int NMoves = 0;
+  static constexpr std::array program = {' '};
+  static constexpr int NMoves = 0;
 };
 using EmptyStateMachine = StateMachine<0, EmptyProgram>;
 ```
